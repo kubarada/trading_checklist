@@ -9,94 +9,13 @@
 
 <h1>📈 Trading Checklist</h1>
 
-<!-- 1️⃣ VÝBĚR SMĚRU -->
-<div class="box" id="directionBox">
-    <button class="direction-btn long" onclick="selectDirection('long')">LONG</button>
-    <button class="direction-btn short" onclick="selectDirection('short')">SHORT</button>
-</div>
+<div class="box" id="directionBox"></div>
+<div class="box hidden" id="checklistBox"></div>
+<div class="box hidden" id="confirmationBox"></div>
 
-<!-- 2️⃣ CHECKLIST -->
-<div class="box hidden" id="checklistBox">
-    <h2 id="checklistTitle"></h2>
-
-    <div class="checklist" id="checklistItems"></div>
-
-    <div class="result" id="result"></div>
-
-    <button class="action-btn tradeBtn" id="tradeBtn" disabled>Vzít trade ✅</button>
-    <button class="action-btn backBtn" onclick="goBack()">Zpět</button>
-</div>
-
-<script>
-    const questions = {
-        long: [
-            "Bullish trend na daném TF",
-            "4H demand zóna",
-            "1H demand zóna",
-            "SFP na 5M/15M",
-            "SL 60 pipů",
-            "Vybraná likvidita",
-            "Ideální čas pro otočení trhu",
-            "Jsem psychicky v klidu"
-        ],
-        short: [
-            "Bearish trend na daném TF",
-            "4H suply zóna",
-            "1H suply zóna",
-            "SFP na 5M/15M",
-            "SL 60 pipů",
-            "Vybraná likvidita",
-            "Ideální čas pro otočení trhu",
-            "Jsem psychicky v klidu"
-        ]
-    };
-
-    function selectDirection(direction) {
-        document.getElementById('directionBox').classList.add('hidden');
-        document.getElementById('checklistBox').classList.remove('hidden');
-
-        document.getElementById('checklistTitle').textContent =
-            direction === 'long' ? '📈 LONG Checklist' : '📉 SHORT Checklist';
-
-        const checklistDiv = document.getElementById('checklistItems');
-        checklistDiv.innerHTML = '';
-
-        questions[direction].forEach(q => {
-            const label = document.createElement('label');
-            label.innerHTML = `<input type="checkbox" class="item"> ${q}`;
-            checklistDiv.appendChild(label);
-        });
-
-        attachListeners();
-        updateChecklist();
-    }
-
-    function attachListeners() {
-        document.querySelectorAll('.item').forEach(cb => {
-            cb.addEventListener('change', updateChecklist);
-        });
-    }
-
-    function updateChecklist() {
-        const checked = document.querySelectorAll('.item:checked').length;
-        const total = document.querySelectorAll('.item').length;
-
-        document.getElementById('result').textContent =
-            `Splněno: ${checked} / ${total}`;
-
-        document.getElementById('tradeBtn').disabled = checked !== total;
-    }
-
-    function goBack() {
-        document.getElementById('checklistBox').classList.add('hidden');
-
-        document.getElementById('checklistItems').innerHTML = '';
-        document.getElementById('result').textContent = '';
-        document.getElementById('tradeBtn').disabled = true;
-
-        document.getElementById('directionBox').classList.remove('hidden');
-    }
-</script>
+<script src="js/direction.js"></script>
+<script src="js/checklist.js"></script>
+<script src="js/confirmation.js"></script>
 
 </body>
 </html>
