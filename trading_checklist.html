@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>Forex Trade Checklist</title>
+    <title>Trading Checklist</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -10,84 +10,170 @@
             color: #e5e7eb;
             padding: 20px;
         }
+
         h1 {
             text-align: center;
             color: #38bdf8;
         }
-        .checklist {
+
+        .box {
             max-width: 600px;
             margin: auto;
             background: #020617;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
+            text-align: center;
         }
-        label {
+
+        /* ZÁKLAD TLAČÍTEK */
+        button {
+            border: none;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+
+        /* PRVNÍ OBRAZOVKA – VELKÁ TLAČÍTKA */
+        .direction-btn {
+            padding: 140px;
+            font-size: 50px;
+            margin: 10px;
+            border-radius: 100px;
+        }
+
+        .long { background: #22c55e; }
+        .short { background: #ef4444; }
+
+        /* DRUHÁ OBRAZOVKA – MENŠÍ TLAČÍTKA */
+        .action-btn {
+            padding: 14px;
+            font-size: 16px;
+            margin-top: 10px;
+            width: 100%;
+            border-radius: 12px;
+        }
+
+        .tradeBtn { background: #38bdf8; }
+        .backBtn { background: #475569; }
+
+        .hidden { display: none; }
+
+        .checklist label {
             display: block;
             margin: 10px 0;
-            cursor: pointer;
+            text-align: left;
         }
+
         input[type="checkbox"] {
             margin-right: 10px;
             transform: scale(1.2);
         }
+
         .result {
-            margin-top: 20px;
+            margin-top: 10px;
             font-size: 18px;
-            text-align: center;
         }
-        button {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            background: #22c55e;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 15px;
+
+        /* HOVER EFEKTY */
+        .direction-btn:hover {
+            transform: scale(1.05);
         }
-        button:disabled {
-            background: #475569;
-            cursor: not-allowed;
+
+        .action-btn:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
 
-<h1>📈 Forex Trade Checklist</h1>
+<h1>📈 Trading Checklist</h1>
 
-<div class="checklist">
-    <label><input type="checkbox" class="item"> Trend je jasně definovaný (HTF)</label>
-    <label><input type="checkbox" class="item"> Vstup je v souladu s mým obchodním plánem</label>
-    <label><input type="checkbox" class="item"> Risk max. 1–2 % účtu</label>
-    <label><input type="checkbox" class="item"> RRR minimálně 1:2</label>
-    <label><input type="checkbox" class="item"> Jasně definovaný Stop Loss</label>
-    <label><input type="checkbox" class="item"> Jasně definovaný Take Profit</label>
-    <label><input type="checkbox" class="item"> Žádné důležité zprávy v blízké době</label>
-    <label><input type="checkbox" class="item"> Emocionálně jsem v klidu</label>
+<!-- 1️⃣ VÝBĚR SMĚRU -->
+<div class="box" id="directionBox">
+    <button class="direction-btn long" onclick="selectDirection('long')">LONG ⬆</button>
+    <button class="direction-btn short" onclick="selectDirection('short')">SHORT ⬇</button>
+</div>
 
-    <div class="result" id="result">
-        Splněno: 0 / 8
-    </div>
+<!-- 2️⃣ CHECKLIST -->
+<div class="box hidden" id="checklistBox">
+    <h2 id="checklistTitle"></h2>
 
-    <button id="tradeBtn" disabled>Vzít trade ✅</button>
+    <div class="checklist" id="checklistItems"></div>
+
+    <div class="result" id="result"></div>
+
+    <button class="action-btn tradeBtn" id="tradeBtn" disabled>Vzít trade ✅</button>
+    <button class="action-btn backBtn" onclick="goBack()">⬅ Zpátky</button>
 </div>
 
 <script>
-    const checkboxes = document.querySelectorAll('.item');
-    const result = document.getElementById('result');
-    const tradeBtn = document.getElementById('tradeBtn');
+    const questions = {
+        long: [
+            "Trh je v uptrendu (HTF)",
+            "Cena reaguje na support / demand",
+            "Break & retest směrem nahoru",
+            "RRR minimálně 1:2",
+            "Stop Loss pod strukturou",
+            "Take Profit na rezistenci",
+            "Žádné high-impact news",
+            "Jsem psychicky v klidu"
+        ],
+        short: [
+            "Trh je v downtrendu (HTF)",
+            "Cena reaguje na rezistenci / supply",
+            "Break & retest směrem dolů",
+            "RRR minimálně 1:2",
+            "Stop Loss nad strukturou",
+            "Take Profit na supportu",
+            "Žádné high-impact news",
+            "Jsem psychicky v klidu"
+        ]
+    };
+
+    function selectDirection(direction) {
+        document.getElementById('directionBox').classList.add('hidden');
+        document.getElementById('checklistBox').classList.remove('hidden');
+
+        document.getElementById('checklistTitle').textContent =
+            direction === 'long' ? '📈 LONG Checklist' : '📉 SHORT Checklist';
+
+        const checklistDiv = document.getElementById('checklistItems');
+        checklistDiv.innerHTML = '';
+
+        questions[direction].forEach(q => {
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" class="item"> ${q}`;
+            checklistDiv.appendChild(label);
+        });
+
+        attachListeners();
+        updateChecklist();
+    }
+
+    function attachListeners() {
+        document.querySelectorAll('.item').forEach(cb => {
+            cb.addEventListener('change', updateChecklist);
+        });
+    }
 
     function updateChecklist() {
         const checked = document.querySelectorAll('.item:checked').length;
-        const total = checkboxes.length;
+        const total = document.querySelectorAll('.item').length;
 
-        result.textContent = `Splněno: ${checked} / ${total}`;
+        document.getElementById('result').textContent =
+            `Splněno: ${checked} / ${total}`;
 
-        // Povolit trade jen když je splněno vše
-        tradeBtn.disabled = checked !== total;
+        document.getElementById('tradeBtn').disabled = checked !== total;
     }
 
-    checkboxes.forEach(cb => cb.addEventListener('change', updateChecklist));
+    function goBack() {
+        document.getElementById('checklistBox').classList.add('hidden');
+
+        document.getElementById('checklistItems').innerHTML = '';
+        document.getElementById('result').textContent = '';
+        document.getElementById('tradeBtn').disabled = true;
+
+        document.getElementById('directionBox').classList.remove('hidden');
+    }
 </script>
 
 </body>
