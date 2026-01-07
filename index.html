@@ -1,1 +1,94 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Forex Trade Checklist</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e5e7eb;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #38bdf8;
+        }
+        .checklist {
+            max-width: 600px;
+            margin: auto;
+            background: #020617;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        label {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: #22c55e;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
 
+<h1>📈 Forex Trade Checklist</h1>
+
+<div class="checklist">
+    <label><input type="checkbox" class="item"> Trend je jasně definovaný (HTF)</label>
+    <label><input type="checkbox" class="item"> Vstup je v souladu s mým obchodním plánem</label>
+    <label><input type="checkbox" class="item"> Risk max. 1–2 % účtu</label>
+    <label><input type="checkbox" class="item"> RRR minimálně 1:2</label>
+    <label><input type="checkbox" class="item"> Jasně definovaný Stop Loss</label>
+    <label><input type="checkbox" class="item"> Jasně definovaný Take Profit</label>
+    <label><input type="checkbox" class="item"> Žádné důležité zprávy v blízké době</label>
+    <label><input type="checkbox" class="item"> Emocionálně jsem v klidu</label>
+
+    <div class="result" id="result">
+        Splněno: 0 / 8
+    </div>
+
+    <button id="tradeBtn" disabled>Vzít trade ✅</button>
+</div>
+
+<script>
+    const checkboxes = document.querySelectorAll('.item');
+    const result = document.getElementById('result');
+    const tradeBtn = document.getElementById('tradeBtn');
+
+    function updateChecklist() {
+        const checked = document.querySelectorAll('.item:checked').length;
+        const total = checkboxes.length;
+
+        result.textContent = `Splněno: ${checked} / ${total}`;
+
+        // Povolit trade jen když je splněno vše
+        tradeBtn.disabled = checked !== total;
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateChecklist));
+</script>
+
+</body>
+</html>
