@@ -1,3 +1,37 @@
+@font-face {
+    font-family: 'Tan Nimbus';
+    src: url('assets/fonts/TanNimbus.woff2') format('woff2'),
+         url('assets/fonts/TanNimbus.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ranade';
+    src: url('assets/fonts/Ranade-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ranade';
+    src: url('assets/fonts/Ranade-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ranade';
+    src: url('assets/fonts/Ranade-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+
 :root {
     --bg-main: #0f172a;
     --bg-card: #020617;
@@ -190,4 +224,60 @@ input[type="checkbox"] {
     transform: none;
     box-shadow: none;
     opacity: 0.7;
+}
+
+/* TOP BAR */
+.topbar {
+    height: 56px;
+    border-bottom: 1px solid #1e293b;
+    background: #020617;
+    display: flex;
+    align-items: center;
+    padding: 0 1.25rem;
+}
+
+/* LEFT BLOCK */
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* LOGO */
+.logo {
+    height: 28px;
+    width: auto;
+    display: block;
+}
+
+/* RIGHT */
+.topbar-right {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+/* PNG LOGO */
+.logo {
+    height: 60px;
+    width: auto;
+    display: block;
+}
+
+/* APP NAME – RANADE */
+.app-name {
+    font-family: 'Ranade', 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e5e7eb;
+}
+
+/* RIGHT */
+.topbar-right {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: ui-monospace, monospace;
 }
