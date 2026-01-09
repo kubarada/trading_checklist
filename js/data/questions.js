@@ -1,6 +1,9 @@
 export const questions = {
     long: [
         "Bullish trend na daném TF",
+        "Seasonality 5y",
+        "Seasonality 10y",
+        "Seasonality 15y",
         "4H demand zóna",
         "1H demand zóna",
         "SFP na 5M/15M",
@@ -11,6 +14,9 @@ export const questions = {
     ],
     short: [
         "Bearish trend na daném TF",
+        "Seasonality 5y",
+        "Seasonality 10y",
+        "Seasonality 15y",
         "4H supply zóna",
         "1H supply zóna",
         "SFP na 5M/15M",

@@ -50,5 +50,11 @@ export function renderChecklist(app) {
     checkboxes.forEach(cb => cb.onchange = update);
 
     document.getElementById('backBtn').onclick = () => navigate('direction');
-    confirmBtn.onclick = () => navigate('confirmation');
+    confirmBtn.onclick = () => {
+    const total = checkboxes.length;
+    const checked = [...checkboxes].filter(c => c.checked).length;
+    state.score = Math.round((checked / total) * 100);
+    navigate('confirmation');
+};
+
 }

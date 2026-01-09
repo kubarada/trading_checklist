@@ -175,3 +175,19 @@ input[type="checkbox"] {
     color: var(--muted);
 }
 
+/* DISABLED STAV – VZÍT TRADE */
+.tradeBtn:disabled {
+    background: #1e293b;
+    color: #64748b;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    opacity: 0.7;
+}
+
+/* zakázat hover efekt, když je disabled */
+.tradeBtn:disabled:hover {
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7;
+}
