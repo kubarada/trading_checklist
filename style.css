@@ -245,9 +245,9 @@ input[type="checkbox"] {
 
 /* LOGO */
 .logo {
-    height: 28px !important;
+    height: 50px !important;
     width: auto !important;
-    max-height: 28px;
+    max-height: 50px;
 }
 
 /* RIGHT */
@@ -256,14 +256,6 @@ input[type="checkbox"] {
     font-size: 0.85rem;
     color: var(--muted);
 }
-
-/* PNG LOGO */
-.logo {
-    height: 60px;
-    width: auto;
-    display: block;
-}
-
 /* APP NAME – RANADE */
 .app-name {
     font-family: 'Ranade', 'Inter', system-ui, sans-serif;
