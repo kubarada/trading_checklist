@@ -40,9 +40,26 @@
 <script>
     const el = document.getElementById('currentDate');
 
+    function getSession(now) {
+        const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+        const hour = now.getHours();
+
+        // Weekend
+        if (day === 0 || day === 6) {
+            return 'Burza zavřená';
+        }
+
+        if (hour >= 2 && hour < 6) return 'ASIA session';
+        if (hour >= 9 && hour < 14) return 'London session';
+        if (hour >= 14 && hour < 22) return 'NY session';
+
+        return '';
+    }
+
     function updateDateTime() {
         const now = new Date();
-        el.textContent = now.toLocaleString('cs-CZ', {
+
+        const timeString = now.toLocaleString('cs-CZ', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -50,8 +67,15 @@
             minute: '2-digit',
             second: '2-digit'
         });
+
+        const session = getSession(now);
+
+        el.textContent = session
+            ? `${timeString} | ${session}`
+            : timeString;
     }
 
     updateDateTime();
     setInterval(updateDateTime, 1000);
 </script>
+
