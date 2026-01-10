@@ -3,8 +3,10 @@ import { navigate, state } from '../app.js';
 export function renderDirection(app) {
     app.innerHTML = `
         <div class="box">
-            <button class="direction-btn long" id="longBtn">LONG</button>
-            <button class="direction-btn short" id="shortBtn">SHORT</button>
+            <div class="direction-wrapper">
+                <button class="direction-btn long" id="longBtn">LONG</button>
+                <button class="direction-btn short" id="shortBtn">SHORT</button>
+            </div>
         </div>
     `;
 

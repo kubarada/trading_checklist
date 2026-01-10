@@ -281,3 +281,22 @@ input[type="checkbox"] {
     color: var(--muted);
     font-family: ui-monospace, monospace;
 }
+
+/* DIRECTION BUTTON WRAPPER */
+.direction-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* RESPONSIVE FIX – MOBILE */
+@media (max-width: 600px) {
+    .direction-btn {
+        padding: 48px;
+        font-size: 28px;
+        border-radius: 48px;
+        width: 100%;
+        max-width: 240px;
+    }
+}
