@@ -4,21 +4,32 @@ const supabaseClient = window.supabase;
 
 export function renderAuth(app) {
     app.innerHTML = `
-        <div class="box">
-            <h2>Přihlášení / Registrace</h2>
+        <div class="box auth-box">
+            <div class="auth-form">
+                <input
+                    id="email"
+                    type="email"
+                    placeholder="Email"
+                    autocomplete="email"
+                />
 
-            <input id="email" type="email" placeholder="Email" />
-            <input id="password" type="password" placeholder="Heslo" />
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="Heslo"
+                    autocomplete="current-password"
+                />
 
-            <button id="loginBtn" class="action-btn tradeBtn">
-                Přihlásit
-            </button>
+                <button id="loginBtn" class="action-btn tradeBtn">
+                    Přihlásit se
+                </button>
 
-            <button id="registerBtn" class="action-btn backBtn">
-                Registrovat
-            </button>
+                <button id="registerBtn" class="auth-secondary">
+                    Vytvořit účet
+                </button>
 
-            <p id="authMsg"></p>
+                <p id="authMsg" class="auth-msg"></p>
+            </div>
         </div>
     `;
 
@@ -36,11 +47,7 @@ async function login() {
         password
     });
 
-    if (error) {
-        msg.textContent = error.message;
-    } else {
-        navigate('direction');
-    }
+    msg.textContent = error ? error.message : '';
 }
 
 async function register() {
@@ -55,5 +62,5 @@ async function register() {
 
     msg.textContent = error
         ? error.message
-        : '✅ Registrace hotová, můžeš se přihlásit';
+        : '✅ Účet vytvořen, můžeš se přihlásit';
 }

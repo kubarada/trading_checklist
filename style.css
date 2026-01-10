@@ -292,3 +292,74 @@ input[type="checkbox"] {
         max-width: 240px;
     }
 }
+
+/* LOGOUT BUTTON */
+.logout-btn {
+    margin-left: 12px;
+    background: none;
+    border: none;
+    color: #ef4444; /* červená */
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.logout-btn:hover {
+    color: #f87171; /* světlejší červená */
+    text-decoration: underline;
+}
+
+/* AUTH SCREEN */
+.auth-box {
+    max-width: 420px;
+    padding: 32px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* INPUTS */
+.auth-form input {
+    width: 100%;
+    padding: 14px 16px;
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.auth-form input::placeholder {
+    color: var(--muted);
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* SECONDARY ACTION */
+.auth-secondary {
+    margin-top: 4px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.auth-secondary:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+/* AUTH MESSAGE */
+.auth-msg {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+}
