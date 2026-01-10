@@ -1,32 +1,32 @@
+import { renderAuth } from './views/auth.js';
 import { renderDirection } from './views/direction.js';
 import { renderChecklist } from './views/checklist.js';
 import { renderConfirmation } from './views/confirmation.js';
 
+
 export const state = {
-    view: 'direction',
     direction: null
 };
 
+const app = document.getElementById('app');
+const supabaseClient = window.supabase;
+
 export function navigate(view) {
-    state.view = view;
-    render();
+    if (view === 'auth') renderAuth(app);
+    if (view === 'direction') renderDirection(app);
+    if (view === 'checklist') renderChecklist(app);
+    if (view === 'confirmation') renderConfirmation(app);
 }
 
-function render() {
-    const app = document.getElementById('app');
-    app.innerHTML = '';
 
-    if (state.view === 'direction') {
-        renderDirection(app);
+(async () => {
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+        navigate('auth');
+    } else {
+        navigate('direction');
     }
-
-    if (state.view === 'checklist') {
-        renderChecklist(app);
-    }
-
-    if (state.view === 'confirmation') {
-        renderConfirmation(app);
-    }
-}
-
-render();
+})();
