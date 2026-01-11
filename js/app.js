@@ -8,7 +8,10 @@ import { renderConfirmation } from './views/confirmation.js';
 export const state = {
     direction: null,
     score: null,
-    isLive: true
+    isLive: true,
+    instrument: 'EURUSD',
+    tradeDate: null,
+    tradeTime: null
 };
 
 

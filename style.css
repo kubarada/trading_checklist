@@ -544,3 +544,65 @@ input[type="checkbox"] {
     background: rgba(234, 179, 8, 0.15);
     color: #eab308;
 }
+
+.backtest-box {
+    margin: 12px 0 24px;
+}
+
+/* DATETIME INPUT */
+.instrument-select.datetime {
+    position: relative;
+    color-scheme: dark;
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+.instrument-select.datetime::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+/* Firefox */
+.instrument-select.datetime {
+    accent-color: white;
+}
+
+/* Modernější pocit */
+.instrument-select.datetime {
+    background: linear-gradient(
+        180deg,
+        #020617 0%,
+        #020617 100%
+    );
+}
+
+/* DATETIME INPUT – MODERN LOOK */
+.datetime-input {
+    color-scheme: dark;
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+}
+
+/* FOCUS */
+.datetime-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* KALENDÁŘ – Chrome / Edge / Safari */
+.datetime-input::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.4);
+    opacity: 1;
+    cursor: pointer;
+}
+
+/* POTLAČENÍ DIVNÝCH SHADOWS */
+.datetime-input::-webkit-datetime-edit {
+    color: var(--text);
+}
+
+
+

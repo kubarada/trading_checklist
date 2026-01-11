@@ -7,9 +7,21 @@ const INSTRUMENTS = [
     { value: 'BTCUSD', label: 'BTC / USD' }
 ];
 
+/* ===== HELPERS ===== */
+function getNowLocalDatetime() {
+    const now = new Date();
+    now.setSeconds(0, 0);
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
+
 export function renderDirection(app) {
     const isLive = state.isLive ?? true;
     const selectedInstrument = state.instrument ?? INSTRUMENTS[0].value;
+
+    // default datetime = now (only first time)
+    const datetimeValue = state.tradeDatetime ?? getNowLocalDatetime();
+    state.tradeDatetime = datetimeValue;
 
     app.innerHTML = `
         <div class="box">
@@ -34,10 +46,7 @@ export function renderDirection(app) {
 
             <!-- INSTRUMENT -->
             <div class="instrument-box">
-                <label class="instrument-label">
-                    Obchodovaný instrument
-                </label>
-
+                <label class="instrument-label">Obchodovaný instrument</label>
                 <select id="instrumentSelect" class="instrument-select">
                     ${INSTRUMENTS.map(i =>
                         `<option value="${i.value}" ${i.value === selectedInstrument ? 'selected' : ''}>
@@ -45,6 +54,18 @@ export function renderDirection(app) {
                         </option>`
                     ).join('')}
                 </select>
+            </div>
+
+            <!-- DATETIME -->
+            <div class="instrument-box">
+                <label class="instrument-label">Datum a čas obchodu</label>
+                <input
+                    type="datetime-local"
+                    id="tradeDatetime"
+                    class="instrument-select datetime-input"
+                    value="${datetimeValue}"
+                    step="60"
+                />
             </div>
 
             <!-- BACK -->
@@ -55,25 +76,25 @@ export function renderDirection(app) {
         </div>
     `;
 
-    /* ===== MODE SWITCH ===== */
+    /* ===== MODE ===== */
     const modeSwitch = document.getElementById('modeSwitch');
     const modeLabel = document.getElementById('modeLabel');
 
-    function updateMode() {
+    modeSwitch.onchange = () => {
         state.isLive = modeSwitch.checked;
         modeLabel.textContent = state.isLive
             ? '🟢 LIVE TRADING'
             : '🟡 BACKTEST';
-    }
-
-    modeSwitch.onchange = updateMode;
+    };
 
     /* ===== INSTRUMENT ===== */
-    const instrumentSelect = document.getElementById('instrumentSelect');
-    state.instrument = selectedInstrument;
+    document.getElementById('instrumentSelect').onchange = e => {
+        state.instrument = e.target.value;
+    };
 
-    instrumentSelect.onchange = () => {
-        state.instrument = instrumentSelect.value;
+    /* ===== DATETIME ===== */
+    document.getElementById('tradeDatetime').onchange = e => {
+        state.tradeDatetime = e.target.value;
     };
 
     /* ===== DIRECTION ===== */
