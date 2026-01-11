@@ -487,3 +487,31 @@ input[type="checkbox"] {
 .switch input:checked + .slider:before {
     transform: translateX(20px);
 }
+
+/* INSTRUMENT */
+.instrument-box {
+    margin: 18px 0 24px;
+    text-align: left;
+}
+
+.instrument-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.instrument-select {
+    width: 100%;
+    padding: 12px 14px;
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.instrument-select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
