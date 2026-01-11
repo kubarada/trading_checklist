@@ -19,6 +19,7 @@ export function renderAuth(app) {
                     placeholder="Heslo"
                     autocomplete="current-password"
                 />
+            
 
                 <button id="loginBtn" class="action-btn tradeBtn">
                     Přihlásit se
@@ -42,13 +43,25 @@ async function login() {
     const password = document.getElementById('password').value;
     const msg = document.getElementById('authMsg');
 
+    // reset
+    msg.textContent = '';
+    msg.classList.remove('auth-error', 'auth-bounce');
+
     const { error } = await supabaseClient.auth.signInWithPassword({
         email,
         password
     });
 
-    msg.textContent = error ? error.message : '';
+    if (error) {
+        msg.textContent = error.message;
+        msg.classList.add('auth-error');
+
+        // restart animation
+        void msg.offsetWidth;
+        msg.classList.add('auth-bounce');
+    }
 }
+
 
 async function register() {
     const email = document.getElementById('email').value;
@@ -62,5 +75,5 @@ async function register() {
 
     msg.textContent = error
         ? error.message
-        : '✅ Účet vytvořen, můžeš se přihlásit';
+        : '✅ Účet vytvořen, potvrďte registraci na vašem emailu!';
 }

@@ -363,3 +363,22 @@ input[type="checkbox"] {
     color: var(--muted);
     text-align: center;
 }
+
+/* AUTH ERROR */
+.auth-error {
+    color: #ef4444;
+}
+
+/* BOUNCE / SHAKE ANIMATION */
+@keyframes authBounce {
+    0%   { transform: translateX(0); }
+    20%  { transform: translateX(-6px); }
+    40%  { transform: translateX(6px); }
+    60%  { transform: translateX(-4px); }
+    80%  { transform: translateX(4px); }
+    100% { transform: translateX(0); }
+}
+
+.auth-bounce {
+    animation: authBounce 0.4s ease;
+}
