@@ -515,3 +515,32 @@ input[type="checkbox"] {
     outline: none;
     border-color: var(--primary);
 }
+/* CHECKLIST HEADER */
+.checklist-header {
+    margin-bottom: 10px;
+}
+
+.checklist-meta {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.meta-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #1e293b;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.meta-badge.live {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.meta-badge.backtest {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+}
