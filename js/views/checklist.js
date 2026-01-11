@@ -1,29 +1,55 @@
 import { state, navigate } from '../app.js';
 import { questions } from '../data/questions.js';
 
+/* ===== SESSION LOGIC ===== */
+function getSessionLabel(datetime) {
+    if (!datetime) return { label: '—', className: '' };
+
+    const hour = new Date(datetime).getHours();
+
+    if (hour >= 2 && hour < 6) {
+        return { label: 'ASIA SESSION', className: 'asia' };
+    }
+
+    if (hour >= 9 && hour < 14) {
+        return { label: 'LONDON SESSION', className: 'london' };
+    }
+
+    if (hour >= 14 && hour < 22) {
+        return { label: 'NY SESSION', className: 'ny' };
+    }
+
+    return { label: 'OFF SESSION', className: 'off' };
+}
+
 export function renderChecklist(app) {
     const qs = questions[state.direction];
 
     const modeLabel = state.isLive ? '🟢 LIVE TRADING' : '🟡 BACKTEST';
     const instrumentLabel = state.instrument ?? '—';
 
+    const session = getSessionLabel(state.tradeDatetime);
+
     app.innerHTML = `
         <div class="box">
 
             <!-- HEADER -->
             <div class="checklist-header">
-            <h2>
-                    ${state.direction === 'long' ? '📈 LONG' : '📉 SHORT'} Checklist
-            </h2>
-
                 <div class="checklist-meta">
                     <span class="meta-badge">${instrumentLabel}</span>
+
                     <span class="meta-badge ${state.isLive ? 'live' : 'backtest'}">
                         ${modeLabel}
                     </span>
+
+                    <span class="meta-badge session ${session.className}">
+                        ${session.label}
+                    </span>
                 </div>
 
-                
+                <h2>
+                    ${state.direction === 'long' ? '📈 LONG' : '📉 SHORT'} Checklist
+                </h2>
             </div>
 
             <!-- PROGRESS BAR -->
@@ -36,7 +62,6 @@ export function renderChecklist(app) {
 
             <!-- QUESTIONS -->
             <div class="checklist" id="items"></div>
-            <div id="result" class="result"></div>
 
             <!-- ACTIONS -->
             <button id="confirmBtn" class="action-btn tradeBtn" disabled>

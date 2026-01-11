@@ -604,5 +604,36 @@ input[type="checkbox"] {
     color: var(--text);
 }
 
+/* SESSION BADGES */
+.meta-badge.session {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+}
+
+/* ASIA */
+.meta-badge.session.asia {
+    background: #1e293b;;
+    color: #d1f552;
+}
+
+/* LONDON */
+.meta-badge.session.london {
+    background: #1e293b;;
+    color: #2276c5;
+}
+
+/* NY */
+.meta-badge.session.ny {
+    background: #1e293b;;
+    color: #ef4444;
+}
+
+/* OFF SESSION */
+.meta-badge.session.off {
+    background: #1e293b;;
+    color: var(--muted);
+}
+
 
 
