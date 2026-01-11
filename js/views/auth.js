@@ -137,10 +137,14 @@ async function register() {
         return;
     }
 
-    const { error } = await supabaseClient.auth.signUp({
-        email,
-        password
+    await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: {
+        emailRedirectTo: 'https://kubarada.github.io/trading_checklist/'
+    }
     });
+
 
     if (error) {
         msg.textContent = error.message;
