@@ -2,7 +2,9 @@ import { navigate } from '../app.js';
 
 const supabaseClient = window.supabase;
 
-/* ===== LOGIN VIEW ===== */
+/* =========================
+   LOGIN VIEW
+========================= */
 export function renderAuth(app) {
     app.innerHTML = `
         <div class="box auth-box">
@@ -42,7 +44,9 @@ export function renderAuth(app) {
     };
 }
 
-/* ===== REGISTER VIEW ===== */
+/* =========================
+   REGISTER VIEW
+========================= */
 function renderRegister(app) {
     app.innerHTML = `
         <div class="box auth-box">
@@ -89,7 +93,9 @@ function renderRegister(app) {
     };
 }
 
-/* ===== LOGIN LOGIC ===== */
+/* =========================
+   LOGIN LOGIC
+========================= */
 async function login() {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
@@ -107,12 +113,15 @@ async function login() {
         msg.textContent = error.message;
         msg.classList.add('auth-error');
 
+        // restart animation
         void msg.offsetWidth;
         msg.classList.add('auth-bounce');
     }
 }
 
-/* ===== REGISTER LOGIC ===== */
+/* =========================
+   REGISTER LOGIC
+========================= */
 async function register() {
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
@@ -137,20 +146,21 @@ async function register() {
         return;
     }
 
-    await supabaseClient.auth.signUp({
-    email,
-    password,
-    options: {
-        emailRedirectTo: 'https://kubarada.github.io/trading_checklist/'
-    }
+    const { error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+            emailRedirectTo: 'https://kubarada.github.io/trading_checklist/'
+        }
     });
-
 
     if (error) {
         msg.textContent = error.message;
         msg.classList.add('auth-error');
-    } else {
-        msg.textContent =
-            '✅ Účet vytvořen. Potvrďte registraci na vašem emailu.';
+        return;
     }
+
+    // ✅ SUCCESS MESSAGE – KLÍČOVÉ
+    msg.textContent =
+        '✅ Účet vytvořen. Ověřte svůj email a poté se vraťte zpět do aplikace.';
 }
