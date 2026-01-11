@@ -73,6 +73,19 @@ export function navigate(view) {
     }
 }
 
+/* ===== HANDLE EMAIL CONFIRMATION ===== */
+(async () => {
+    const supabaseClient = window.supabase;
+
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    // Pokud je user přesměrován z emailu, Supabase si session vezme z URL
+    if (data?.session) {
+        // session exists – onAuthStateChange se postará o routing
+        return;
+    }
+})();
+
 /* ===== INIT UI ===== */
 // vždy něco renderuj (žádná prázdná obrazovka)
 navigate('auth');
