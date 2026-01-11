@@ -7,41 +7,27 @@ function getSessionLabel(datetime) {
 
     const hour = new Date(datetime).getHours();
 
-    if (hour >= 2 && hour < 6) {
-        return { label: 'ASIA SESSION', className: 'asia' };
-    }
-
-    if (hour >= 9 && hour < 14) {
-        return { label: 'LONDON SESSION', className: 'london' };
-    }
-
-    if (hour >= 14 && hour < 22) {
-        return { label: 'NY SESSION', className: 'ny' };
-    }
+    if (hour >= 2 && hour < 6) return { label: 'ASIA SESSION', className: 'asia' };
+    if (hour >= 9 && hour < 14) return { label: 'LONDON SESSION', className: 'london' };
+    if (hour >= 14 && hour < 22) return { label: 'NY SESSION', className: 'ny' };
 
     return { label: 'OFF SESSION', className: 'off' };
 }
 
 export function renderChecklist(app) {
-    const qs = questions[state.direction];
-
-    const modeLabel = state.isLive ? '🟢 LIVE TRADING' : '🟡 BACKTEST';
-    const instrumentLabel = state.instrument ?? '—';
-
+    const checklist = questions[state.direction];
     const session = getSessionLabel(state.tradeDatetime);
 
     app.innerHTML = `
-        <div class="box">
+        <div class="box wide">
 
             <!-- HEADER -->
             <div class="checklist-header">
                 <div class="checklist-meta">
-                    <span class="meta-badge">${instrumentLabel}</span>
-
+                    <span class="meta-badge">${state.instrument}</span>
                     <span class="meta-badge ${state.isLive ? 'live' : 'backtest'}">
-                        ${modeLabel}
+                        ${state.isLive ? 'LIVE TRADING' : 'BACKTEST'}
                     </span>
-
                     <span class="meta-badge session ${session.className}">
                         ${session.label}
                     </span>
@@ -52,7 +38,7 @@ export function renderChecklist(app) {
                 </h2>
             </div>
 
-            <!-- PROGRESS BAR -->
+            <!-- PROGRESS -->
             <div class="progress-wrapper">
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
@@ -60,8 +46,8 @@ export function renderChecklist(app) {
                 <div class="progress-text" id="progressText">0 %</div>
             </div>
 
-            <!-- QUESTIONS -->
-            <div class="checklist" id="items"></div>
+            <!-- CHECKLIST GRID -->
+            <div class="checklist-grid" id="checklistGrid"></div>
 
             <!-- ACTIONS -->
             <button id="confirmBtn" class="action-btn tradeBtn" disabled>
@@ -73,17 +59,27 @@ export function renderChecklist(app) {
         </div>
     `;
 
-    /* ===== QUESTIONS ===== */
-    const items = document.getElementById('items');
-    qs.forEach(q => {
-        items.innerHTML += `
-            <label>
-                <input type="checkbox"> ${q}
-            </label>
+    /* ===== RENDER COLUMNS ===== */
+    const grid = document.getElementById('checklistGrid');
+
+    Object.values(checklist).forEach(section => {
+        const col = document.createElement('div');
+        col.className = 'checklist-column';
+
+        col.innerHTML = `
+            <h3 class="checklist-title">${section.title}</h3>
+            ${section.items.map(q => `
+                <label>
+                    <input type="checkbox"> ${q}
+                </label>
+            `).join('')}
         `;
+
+        grid.appendChild(col);
     });
 
-    const checkboxes = items.querySelectorAll('input');
+    /* ===== LOGIC ===== */
+    const checkboxes = grid.querySelectorAll('input[type="checkbox"]');
     const confirmBtn = document.getElementById('confirmBtn');
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');

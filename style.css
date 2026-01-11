@@ -635,5 +635,94 @@ input[type="checkbox"] {
     color: var(--muted);
 }
 
+/* BACKTEST RESULT */
+.backtest-result {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.result-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.result-btn {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #1e293b;
+    background: #020617;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.result-btn.win {
+    color: #22c55e;
+}
+
+.result-btn.be {
+    color: #eab308;
+}
+
+.result-btn.loss {
+    color: #ef4444;
+}
+
+.result-btn.active {
+    box-shadow: 0 0 0 2px currentColor;
+}
+
+.result-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* WIDE BOX */
+.box.wide {
+    max-width: 1100px;
+}
+
+/* CHECKLIST GRID */
+.checklist-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin: 20px 0;
+}
+
+/* COLUMN */
+.checklist-column {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.checklist-title {
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+    .checklist-grid {
+        grid-template-columns: 1fr;
+    }
+}
+/* CHECKLIST ITEMS – POD SEBOU */
+.checklist-column label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+
 
 
