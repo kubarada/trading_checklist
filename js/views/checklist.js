@@ -7,9 +7,17 @@ function getSessionLabel(datetime) {
 
     const hour = new Date(datetime).getHours();
 
-    if (hour >= 2 && hour < 6) return { label: 'ASIA SESSION', className: 'asia' };
-    if (hour >= 9 && hour < 14) return { label: 'LONDON SESSION', className: 'london' };
-    if (hour >= 14 && hour < 22) return { label: 'NY SESSION', className: 'ny' };
+    if (hour >= 2 && hour < 6) {
+        return { label: 'ASIA SESSION', className: 'asia' };
+    }
+
+    if (hour >= 9 && hour < 14) {
+        return { label: 'LONDON SESSION', className: 'london' };
+    }
+
+    if (hour >= 14 && hour < 22) {
+        return { label: 'NY SESSION', className: 'ny' };
+    }
 
     return { label: 'OFF SESSION', className: 'off' };
 }
@@ -25,9 +33,11 @@ export function renderChecklist(app) {
             <div class="checklist-header">
                 <div class="checklist-meta">
                     <span class="meta-badge">${state.instrument}</span>
+
                     <span class="meta-badge ${state.isLive ? 'live' : 'backtest'}">
                         ${state.isLive ? 'LIVE TRADING' : 'BACKTEST'}
                     </span>
+
                     <span class="meta-badge session ${session.className}">
                         ${session.label}
                     </span>
@@ -59,7 +69,7 @@ export function renderChecklist(app) {
         </div>
     `;
 
-    /* ===== RENDER COLUMNS ===== */
+    /* ===== RENDER CHECKLIST COLUMNS ===== */
     const grid = document.getElementById('checklistGrid');
 
     Object.values(checklist).forEach(section => {
@@ -68,17 +78,25 @@ export function renderChecklist(app) {
 
         col.innerHTML = `
             <h3 class="checklist-title">${section.title}</h3>
-            ${section.items.map(q => `
+            ${section.items
+                .map(
+                    q => `
                 <label>
-                    <input type="checkbox"> ${q}
+                    <input
+                        type="checkbox"
+                        data-id="${q.id}"
+                    >
+                    ${q.text}
                 </label>
-            `).join('')}
+            `
+                )
+                .join('')}
         `;
 
         grid.appendChild(col);
     });
 
-    /* ===== LOGIC ===== */
+    /* ===== CHECKLIST LOGIC ===== */
     const checkboxes = grid.querySelectorAll('input[type="checkbox"]');
     const confirmBtn = document.getElementById('confirmBtn');
     const progressFill = document.getElementById('progressFill');
@@ -86,7 +104,7 @@ export function renderChecklist(app) {
 
     function update() {
         const total = checkboxes.length;
-        const checked = [...checkboxes].filter(c => c.checked).length;
+        const checked = [...checkboxes].filter(cb => cb.checked).length;
         const percent = Math.round((checked / total) * 100);
 
         progressFill.style.width = `${percent}%`;
@@ -95,7 +113,9 @@ export function renderChecklist(app) {
         confirmBtn.disabled = percent < 80;
     }
 
-    checkboxes.forEach(cb => cb.onchange = update);
+    checkboxes.forEach(cb => {
+        cb.onchange = update;
+    });
 
     /* ===== ACTIONS ===== */
     document.getElementById('backBtn').onclick = () => {
@@ -104,9 +124,13 @@ export function renderChecklist(app) {
 
     confirmBtn.onclick = () => {
         const total = checkboxes.length;
-        const checked = [...checkboxes].filter(c => c.checked).length;
+        const checked = [...checkboxes].filter(cb => cb.checked);
 
-        state.score = Math.round((checked / total) * 100);
+        state.score = Math.round((checked.length / total) * 100);
+
+        // ✅ ULOŽENÍ ZAŠKRTNUTÝCH QUESTIONS (ID)
+        state.checkedQuestions = checked.map(cb => cb.dataset.id);
+
         navigate('confirmation');
     };
 }

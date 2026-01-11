@@ -1,4 +1,5 @@
 import { state, navigate } from '../app.js';
+import { saveTrade } from '../services/tradeService.js';
 
 /* ===== HELPERS ===== */
 function formatDatetime(dt) {
@@ -7,16 +8,34 @@ function formatDatetime(dt) {
 }
 
 function getGrade(score) {
-    if (score >= 95) return { label: 'A+ trade', className: 'grade-aplus' };
-    if (score >= 90) return { label: 'A trade', className: 'grade-a' };
-    return { label: 'B trade', className: 'grade-b' };
+    if (score >= 95) return { label: 'A+ trade', value: 'A+' };
+    if (score >= 90) return { label: 'A trade', value: 'A' };
+    return { label: 'B trade', value: 'B' };
+}
+
+/* ===== TOAST ===== */
+function showSuccessToast(text) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-success';
+    toast.textContent = text;
+
+    document.body.appendChild(toast);
+
+    // trigger animation
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    // hide + remove
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 1200);
 }
 
 export function renderConfirmation(app) {
-    const { label: gradeLabel, className: gradeClass } = getGrade(state.score);
-
+    const { label: gradeLabel } = getGrade(state.score);
     const isLive = state.isLive;
-    const tradeDatetime = formatDatetime(state.tradeDatetime);
 
     app.innerHTML = `
         <div class="box">
@@ -25,14 +44,13 @@ export function renderConfirmation(app) {
 
             <!-- SUMMARY -->
             <div class="trade-summary">
-
                 <p><strong>Instrument:</strong> ${state.instrument}</p>
                 <p><strong>Směr:</strong> ${state.direction.toUpperCase()}</p>
                 <p><strong>Režim:</strong> ${isLive ? 'LIVE TRADING' : 'BACKTEST'}</p>
-                <p><strong>Datum & čas:</strong> ${tradeDatetime}</p>
+                <p><strong>Datum & čas:</strong> ${formatDatetime(state.tradeDatetime)}</p>
                 <p><strong>Checklist:</strong> ${state.score} %</p>
 
-                <div class="trade-grade ${gradeClass}">
+                <div class="trade-grade">
                     Ohodnocení: <b>${gradeLabel}</b>
                 </div>
             </div>
@@ -54,11 +72,13 @@ export function renderConfirmation(app) {
                     : ''
             }
 
-            <!-- ACTIONS -->
-            <button class="action-btn tradeBtn" id="finishBtn" ${
-                !isLive ? 'disabled' : ''
-            }>
-                Dokončit trade
+            <!-- ACTION -->
+            <button
+                class="action-btn tradeBtn"
+                id="finishBtn"
+                ${!isLive ? 'disabled' : ''}
+            >
+                Uložit trade
             </button>
         </div>
     `;
@@ -79,17 +99,30 @@ export function renderConfirmation(app) {
         });
     }
 
-    /* ===== FINISH ===== */
-    document.getElementById('finishBtn').onclick = () => {
+    /* ===== SAVE TRADE ===== */
+    document.getElementById('finishBtn').onclick = async () => {
         if (!isLive && !state.tradeResult) return;
 
-        // tady později:
-        // saveTradeToSupabase(state)
+        try {
+            await saveTrade(state);
+        } catch (err) {
+            console.error(err);
+            alert('Chyba při ukládání tradu');
+            return;
+        }
 
-        // reset minimálního stavu
+        // ✅ SUCCESS FEEDBACK
+        showSuccessToast('Trade byl uložen úspěšně');
+
+        /* ===== RESET STATE ===== */
         state.direction = null;
         state.score = null;
+        state.tradeResult = null;
+        state.checkedQuestions = null;
 
-        navigate('dashboard');
+        // malá pauza kvůli UX
+        setTimeout(() => {
+            navigate('dashboard');
+        }, 1500);
     };
 }
