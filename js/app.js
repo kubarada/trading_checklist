@@ -3,6 +3,8 @@ import { renderDashboard } from './views/dashboard.js';
 import { renderDirection } from './views/direction.js';
 import { renderChecklist } from './views/checklist.js';
 import { renderConfirmation } from './views/confirmation.js';
+import { renderHistory } from './views/history.js';
+
 
 /* ===== GLOBAL STATE ===== */
 export const state = {
@@ -58,14 +60,7 @@ export function navigate(view) {
             break;
 
         case 'history':
-            app.innerHTML = `
-                <div class="box">
-                    <h2>🕘 Historie tradů</h2>
-                    <p style="color: var(--muted); margin-top: 12px;">
-                        Připravujeme…
-                    </p>
-                </div>
-            `;
+            renderHistory(app);
             break;
 
         default:
