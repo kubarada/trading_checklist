@@ -940,25 +940,108 @@ input[type="checkbox"] {
     color: var(--muted);
 }
 
-.histogram-canvas {
-    width: 100%;
-    margin-top: 12px;
-    background: #020617;
-    border-radius: 12px;
+.stats-grid.vertical {
+    grid-template-columns: 1fr;
 }
 
-.chart-tooltip {
-    position: absolute;
-    transform: translate(-50%, -100%);
+.stat-value.positive {
+    color: #22c55e;
+}
+
+.stat-value.negative {
+    color: #ef4444;
+}
+
+.stat-card {
     background: #020617;
     border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.stat-card h4 {
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+}
+
+.histogram-row {
+    padding: 4px 0;
     border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 0.7rem;
+}
+
+.histogram-row:hover {
+    background: rgba(30, 41, 59, 0.4);
+}
+
+/* STATS WINDOW */
+.stats-window {
+    margin-top: 16px;
+}
+
+/* TABS BAR */
+.stats-tabs {
+    display: flex;
+    gap: 4px;
+    padding-left: 12px;
+}
+
+/* TAB */
+.stats-tab {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    padding: 8px 18px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    position: relative;
+    top: 1px;
+}
+
+/* HOVER */
+.stats-tab:hover {
     color: var(--text);
-    white-space: nowrap;
-    pointer-events: none;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    display: none;
-    z-index: 10;
+}
+
+/* ACTIVE TAB = napojený na box */
+.stats-tab.active {
+    background: #020617;
+    color: var(--text);
+    border-color: #1e293b;
+    z-index: 2;
+}
+
+/* CONTENT BOX */
+.stats-body {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 0 16px 16px 16px;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.stats-tabs {
+    display: flex;
+    gap: 4px;
+    padding-left: 0px;
+}
+.stats-tab:first-child {
+    margin-left: 0px;
+}
+
+/* REMOVE INNER BOX UNDER SESSIONS */
+.stats-panel {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.stats-panel h3 {
+    margin-top: 0;
 }
