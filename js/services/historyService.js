@@ -1,40 +1,44 @@
 const supabase = window.supabase;
 
-export async function fetchTrades(filters = {}) {
+export async function fetchTrades(state) {
     let query = supabase
         .from('trades')
-        .select('*')
-        .order('trade_datetime', { ascending: false });
+        .select('*');
 
-    /* ===== INSTRUMENT ===== */
-    if (filters.instrument) {
-        query = query.eq('instrument', filters.instrument);
+    /* ===== FILTERS ===== */
+    if (state.filters.instrument) {
+        query = query.ilike(
+            'instrument',
+            `%${state.filters.instrument}%`
+        );
     }
 
-    /* ===== MODE (LIVE / BACKTEST) ===== */
-    if (filters.is_live === 'true') {
-        query = query.eq('is_live', true);
+    if (state.filters.session) {
+        query = query.ilike(
+            'session',
+            `%${state.filters.session}%`
+        );
     }
 
-    if (filters.is_live === 'false') {
-        query = query.eq('is_live', false);
+    if (state.filters.result === 'LIVE') {
+        query = query.is('result', null);
     }
 
-    // WIN / LOSS / BE
     if (
-        filters.result &&
-        filters.result !== 'LIVE'
+        state.filters.result &&
+        state.filters.result !== 'LIVE'
     ) {
-        query = query.eq('result', filters.result);
+        query = query.eq('result', state.filters.result);
     }
+
+    /* ===== SORT ===== */
+    query = query.order(
+        state.sort.column,
+        { ascending: state.sort.direction === 'asc' }
+    );
 
     const { data, error } = await query;
 
-    console.log('FETCH TRADES:', filters, data, error);
-
-    if (error) {
-        throw error;
-    }
-
+    if (error) throw error;
     return data;
 }

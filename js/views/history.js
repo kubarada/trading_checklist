@@ -2,40 +2,69 @@ import { navigate } from '../app.js';
 import { fetchTrades } from '../services/historyService.js';
 import { questions } from '../data/questions.js';
 
+/* ===== TABLE STATE ===== */
+const tableState = {
+    filters: {
+        instrument: '',
+        session: '',
+        result: ''
+    },
+    sort: {
+        column: 'trade_datetime',
+        direction: 'desc'
+    }
+};
+
 /* ===== HELPERS ===== */
 function questionIdToText(id) {
-    const allQuestions = [
-        ...Object.values(questions.long).flatMap(section => section.items),
-        ...Object.values(questions.short).flatMap(section => section.items)
+    const all = [
+        ...Object.values(questions.long).flatMap(s => s.items),
+        ...Object.values(questions.short).flatMap(s => s.items)
     ];
-
-    const found = allQuestions.find(q => q.id === id);
-    return found ? found.text : id;
+    return all.find(q => q.id === id)?.text ?? id;
 }
 
-function renderTradeRow(trade) {
-    return `
-        <tr>
-            <td>${trade.instrument}</td>
-            <td>${trade.direction.toUpperCase()}</td>
-            <td>${trade.is_live ? 'LIVE' : 'BACKTEST'}</td>
-            <td>${trade.session.toUpperCase()}</td>
-            <td>${trade.checklist_score} %</td>
-            <td>${trade.grade}</td>
-            <td>${trade.result ?? '—'}</td>
-            <td>${new Date(trade.trade_datetime).toLocaleString('cs-CZ')}</td>
-        </tr>
-        <tr class="details">
-            <td colspan="8">
-                <div class="questions">
-                    <strong>Splněné otázky:</strong>
-                    ${trade.checked_questions
-                        .map(id => `<span class="q-badge">${questionIdToText(id)}</span>`)
-                        .join('')}
-                </div>
-            </td>
-        </tr>
-    `;
+function renderRows(trades) {
+    return trades.map(t => {
+        const questionsText = t.checked_questions
+            .map(id => `<li>${questionIdToText(id)}</li>`)
+            .join('');
+
+        return `
+            <tr>
+                <td>${t.instrument}</td>
+                <td>${t.direction.toUpperCase()}</td>
+                <td>${t.session.toUpperCase()}</td>
+                <td>${t.checklist_score}%</td>
+                <td>${t.grade}</td>
+                <td>${t.result ?? 'LIVE'}</td>
+                <td>
+                    <div class="questions-tooltip">
+                        <span class="q-summary">
+                            Questions (${t.checked_questions.length})
+                        </span>
+
+                        <div class="q-tooltip">
+                            <ul>
+                                ${questionsText}
+                            </ul>
+                        </div>
+                    </div>
+                </td>
+                <td>${new Date(t.trade_datetime).toLocaleString('cs-CZ')}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function toggleSort(column) {
+    if (tableState.sort.column === column) {
+        tableState.sort.direction =
+            tableState.sort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        tableState.sort.column = column;
+        tableState.sort.direction = 'asc';
+    }
 }
 
 /* ===== VIEW ===== */
@@ -45,114 +74,70 @@ export async function renderHistory(app) {
 
             <h2>Historie tradů</h2>
 
-            <!-- FILTERS -->
-            <div class="history-filters">
-                <select id="fInstrument">
-                    <option value="">Instrument</option>
-                    <option value="EURUSD">EURUSD</option>
-                    <option value="XAUUSD">XAUUSD</option>
-                    <option value="BTCUSD">BTCUSD</option>
-                </select>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th data-sort="instrument">Instrument</th>
+                        <th>Směr</th>
+                        <th data-sort="session">Session</th>
+                        <th data-sort="checklist_score">Checklist</th>
+                        <th data-sort="grade">Grade</th>
+                        <th data-sort="result">Výsledek</th>
+                        <th>Questions</th>
+                        <th data-sort="trade_datetime">Datum</th>
+                    </tr>
+                    <tr class="filters">
+                        <th><input data-filter="instrument" placeholder="EURUSD"></th>
+                        <th></th>
+                        <th><input data-filter="session" placeholder="london"></th>
+                        <th></th>
+                        <th></th>
+                        <th><input data-filter="result" placeholder="WIN / LIVE"></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="rows">
+                    <tr><td colspan="8">Načítám…</td></tr>
+                </tbody>
+            </table>
 
-                <select id="fMode">
-                    <option value="">Režim</option>
-                    <option value="true">LIVE</option>
-                    <option value="false">BACKTEST</option>
-                </select>
-
-                <select id="fResult">
-                    <option value="">Výsledek</option>
-                    <option value="WIN">WIN</option>
-                    <option value="BE">BE</option>
-                    <option value="LOSS">LOSS</option>
-                </select>
-
-                <button id="applyFilters" class="action-btn tradeBtn">
-                    Filtrovat
-                </button>
-            </div>
-
-            <!-- TABLE -->
-            <div class="table-wrap">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Instrument</th>
-                            <th>Směr</th>
-                            <th>Režim</th>
-                            <th>Session</th>
-                            <th>Checklist</th>
-                            <th>Grade</th>
-                            <th>Výsledek</th>
-                            <th>Datum</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyRows">
-                        <tr>
-                            <td colspan="8">Načítám…</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- BACK BUTTON -->
-            <button
-                id="backToDashboard"
-                class="action-btn backBtn"
-                style="margin-top: 16px;"
-            >
+            <button class="action-btn backBtn" id="backBtn" style="margin-top:16px">
                 ← Zpět na dashboard
             </button>
-
         </div>
     `;
 
-    const rowsEl = document.getElementById('historyRows');
+    const rowsEl = document.getElementById('rows');
 
-    async function loadTrades() {
-        rowsEl.innerHTML = `
-            <tr>
-                <td colspan="8">Načítám…</td>
-            </tr>
-        `;
-
-        const filters = {
-            instrument: document.getElementById('fInstrument').value || null,
-            is_live: document.getElementById('fMode').value,
-            result: document.getElementById('fResult').value || null
-        };
-
-        try {
-            const trades = await fetchTrades(filters);
-
-            if (!trades.length) {
-                rowsEl.innerHTML = `
-                    <tr>
-                        <td colspan="8">Žádné trady nenalezeny</td>
-                    </tr>
-                `;
-                return;
-            }
-
-            rowsEl.innerHTML = trades
-                .map(renderTradeRow)
-                .join('');
-        } catch (err) {
-            console.error(err);
-            rowsEl.innerHTML = `
-                <tr>
-                    <td colspan="8">Chyba při načítání dat</td>
-                </tr>
-            `;
-        }
+    async function load() {
+        rowsEl.innerHTML = `<tr><td colspan="8">Načítám…</td></tr>`;
+        const trades = await fetchTrades(tableState);
+        rowsEl.innerHTML = trades.length
+            ? renderRows(trades)
+            : `<tr><td colspan="8">Žádná data</td></tr>`;
     }
 
-    document.getElementById('applyFilters').onclick = loadTrades;
+    /* FILTERS */
+    document.querySelectorAll('[data-filter]').forEach(input => {
+        input.addEventListener('input', e => {
+            tableState.filters[e.target.dataset.filter] = e.target.value;
+            load();
+        });
+    });
 
-    document.getElementById('backToDashboard').onclick = () => {
+    /* SORT */
+    document.querySelectorAll('[data-sort]').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.onclick = () => {
+            toggleSort(th.dataset.sort);
+            load();
+        };
+    });
+
+    document.getElementById('backBtn').onclick = () => {
         navigate('dashboard');
     };
 
-    /* ===== INITIAL LOAD ===== */
-    loadTrades();
+    load();
 }
