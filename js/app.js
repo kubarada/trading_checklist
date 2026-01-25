@@ -4,6 +4,7 @@ import { renderDirection } from './views/direction.js';
 import { renderChecklist } from './views/checklist.js';
 import { renderConfirmation } from './views/confirmation.js';
 import { renderHistory } from './views/history.js';
+import { renderStats } from './views/stats.js';
 
 
 /* ===== GLOBAL STATE ===== */
@@ -47,20 +48,12 @@ export function navigate(view) {
             renderConfirmation(app);
             break;
 
-        /* PLACEHOLDERS */
-        case 'stats':
-            app.innerHTML = `
-                <div class="box">
-                    <h2>📊 Statistiky</h2>
-                    <p style="color: var(--muted); margin-top: 12px;">
-                        Připravujeme…
-                    </p>
-                </div>
-            `;
-            break;
-
         case 'history':
             renderHistory(app);
+            break;
+        
+        case 'stats':
+            renderStats(app);
             break;
 
         default:
