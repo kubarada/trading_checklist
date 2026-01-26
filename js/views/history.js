@@ -31,6 +31,11 @@ function renderRows(trades) {
         <tr>
             <td>${t.instrument}</td>
             <td>${t.direction.toUpperCase()}</td>
+            <td>
+                <span class="meta-badge ${t.is_live ? 'live' : 'backtest'}">
+                    ${t.is_live ? 'LIVE' : 'BACKTEST'}
+                </span>
+            </td>
             <td>${t.session.toUpperCase()}</td>
             <td>${t.checklist_score}%</td>
             <td>${t.grade}</td>
@@ -77,6 +82,7 @@ export async function renderHistory(app) {
                     <tr>
                         <th data-sort="instrument">Instrument</th>
                         <th>Směr</th>
+                        <th>Mode</th>
                         <th data-sort="session">Session</th>
                         <th data-sort="checklist_score">Checklist</th>
                         <th data-sort="grade">Grade</th>
