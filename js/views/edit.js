@@ -12,13 +12,21 @@ const INSTRUMENTS = [
 
 /* ===== SESSION LOGIC ===== */
 function getSessionLabel(datetime) {
-    if (!datetime) return { label: 'OFF SESSION', className: 'off' };
+    if (!datetime) return { label: '—', className: '' };
 
     const hour = new Date(datetime).getHours();
 
-    if (hour >= 2 && hour < 6) return { label: 'ASIA SESSION', className: 'asia' };
-    if (hour >= 9 && hour < 14) return { label: 'LONDON SESSION', className: 'london' };
-    if (hour >= 14 && hour < 22) return { label: 'NY SESSION', className: 'ny' };
+    if (hour >= 2 && hour < 6) {
+        return { label: 'ASIA SESSION', className: 'asia' };
+    }
+
+    if (hour >= 9 && hour < 14) {
+        return { label: 'LONDON SESSION', className: 'london' };
+    }
+
+    if (hour >= 14 && hour < 22) {
+        return { label: 'NY SESSION', className: 'ny' };
+    }
 
     return { label: 'OFF SESSION', className: 'off' };
 }
@@ -233,7 +241,7 @@ export function renderEdit(app) {
         const trade_datetime = dateInput.value;
 
         const is_live = document.getElementById('isLive').checked;
-        const sessionValue = getSessionLabel(trade_datetime).label;
+        const sessionValue = getSessionLabel(trade_datetime).className;
         const instrument = instrumentSelect.value;
 
         const { error } = await supabase

@@ -1108,3 +1108,10 @@ input[type="checkbox"] {
     background-color: #0b1020;
 }
 
+.history-table th {
+    user-select: none;
+}
+
+.history-table th::selection {
+    background: transparent;
+}

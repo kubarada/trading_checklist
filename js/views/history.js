@@ -4,12 +4,19 @@ import { questions } from '../data/questions.js';
 
 const supabase = window.supabase;
 
-/* ===== TABLE STATE ===== */
+/* =========================
+   TABLE STATE
+   ========================= */
 const tableState = {
     filters: {
         instrument: '',
+        direction: '',
+        mode: '',
         session: '',
-        result: ''
+        grade: '',
+        result: '',
+        questions: '',
+        date: ''
     },
     sort: {
         column: 'trade_datetime',
@@ -17,16 +24,44 @@ const tableState = {
     }
 };
 
-/* ===== LOCAL CACHE ===== */
+/* =========================
+   LOCAL CACHE
+   ========================= */
 let currentTrades = [];
 
-/* ===== HELPERS ===== */
+/* =========================
+   HELPERS
+   ========================= */
 function questionIdToText(id) {
     const all = [
         ...Object.values(questions.long).flatMap(s => s.items),
         ...Object.values(questions.short).flatMap(s => s.items)
     ];
     return all.find(q => q.id === id)?.text ?? id;
+}
+
+function matches(value, filter) {
+    if (!filter) return true;
+    return String(value ?? '')
+        .toLowerCase()
+        .includes(filter.toLowerCase());
+}
+
+function tradeMatchesFilters(trade) {
+    const questionsText = (trade.checked_questions ?? [])
+        .map(id => questionIdToText(id))
+        .join(' ');
+
+    return (
+        matches(trade.instrument, tableState.filters.instrument) &&
+        matches(trade.direction, tableState.filters.direction) &&
+        matches(trade.is_live ? 'live' : 'backtest', tableState.filters.mode) &&
+        matches(trade.session, tableState.filters.session) &&
+        matches(trade.grade, tableState.filters.grade) &&
+        matches(trade.result ?? 'live', tableState.filters.result) &&
+        matches(questionsText, tableState.filters.questions) &&
+        matches(trade.trade_datetime, tableState.filters.date)
+    );
 }
 
 function toggleSort(column) {
@@ -39,27 +74,64 @@ function toggleSort(column) {
     }
 }
 
+function sortArrow(column) {
+    if (tableState.sort.column !== column) return '';
+    return tableState.sort.direction === 'asc' ? ' ▲' : ' ▼';
+}
+
+/* =========================
+   RENDER HEADER (STATIC)
+   ========================= */
+function renderHeader() {
+    return `
+        <thead>
+            <tr>
+                <th data-sort="instrument">Instrument${sortArrow('instrument')}</th>
+                <th data-sort="direction">Směr${sortArrow('direction')}</th>
+                <th data-sort="mode">Typ${sortArrow('mode')}</th>
+                <th data-sort="session">Session${sortArrow('session')}</th>
+                <th data-sort="checklist_score">Skóre${sortArrow('checklist_score')}</th>
+                <th data-sort="grade">Známka${sortArrow('grade')}</th>
+                <th data-sort="result">Výsledek${sortArrow('result')}</th>
+                <th>Checklist</th>
+                <th data-sort="trade_datetime">Datum${sortArrow('trade_datetime')}</th>
+                <th>Upravit</th>
+                <th>Smazat</th>
+            </tr>
+            <tr class="filters">
+                <th><input data-filter="instrument"></th>
+                <th><input data-filter="direction" placeholder=""></th>
+                <th><input data-filter="mode" placeholder=""></th>
+                <th><input data-filter="session"></th>
+                <th></th>
+                <th><input data-filter="grade"></th>
+                <th><input data-filter="result"></th>
+                <th><input data-filter="questions" placeholder="Breakout..."></th>
+                <th><input data-filter="date" placeholder="2026"></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+    `;
+}
+
+/* =========================
+   RENDER ROWS
+   ========================= */
 function renderRows(trades) {
     return trades.map(t => `
         <tr>
             <td>${t.instrument}</td>
-
             <td>${t.direction.toUpperCase()}</td>
-
             <td>
                 <span class="meta-badge ${t.is_live ? 'live' : 'backtest'}">
                     ${t.is_live ? 'LIVE' : 'BACKTEST'}
                 </span>
             </td>
-
             <td>${t.session?.toUpperCase() ?? '—'}</td>
-
             <td>${t.checklist_score ?? 0} %</td>
-
             <td>${t.grade ?? '—'}</td>
-
             <td>${t.result ?? 'LIVE'}</td>
-
             <td>
                 <div class="questions-tooltip">
                     <span class="q-summary">
@@ -74,170 +146,120 @@ function renderRows(trades) {
                     </div>
                 </div>
             </td>
-
-            <td>
-                ${new Date(
-                    t.trade_datetime ?? t.created_at
-                ).toLocaleString('cs-CZ')}
-            </td>
-
-            <td>
-                <button
-                    class="edit-btn"
-                    data-id="${t.id}"
-                    title="Editovat trade"
-                >
-                    ✏️
-                </button>
-            </td>
-
-            <td>
-                <button
-                    class="delete-btn"
-                    data-id="${t.id}"
-                    title="Smazat trade"
-                >
-                    🗑️
-                </button>
-            </td>
+            <td>${new Date(t.trade_datetime).toLocaleString('cs-CZ')}</td>
+            <td><button class="edit-btn" data-id="${t.id}">✏️</button></td>
+            <td><button class="delete-btn" data-id="${t.id}">🗑️</button></td>
         </tr>
     `).join('');
 }
 
-/* ===== VIEW ===== */
+/* =========================
+   VIEW
+   ========================= */
 export async function renderHistory(app) {
     app.innerHTML = `
         <div class="box wide">
-
             <h2>Historie tradů</h2>
 
             <div class="table-wrap">
                 <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th data-sort="instrument">Instrument</th>
-                            <th>Směr</th>
-                            <th>Mode</th>
-                            <th data-sort="session">Session</th>
-                            <th data-sort="checklist_score">Checklist</th>
-                            <th data-sort="grade">Grade</th>
-                            <th data-sort="result">Výsledek</th>
-                            <th>Questions</th>
-                            <th data-sort="trade_datetime">Datum</th>
-                            <th>Edit</th>
-                            <th>Delete</th>
-                        </tr>
-                        <tr class="filters">
-                            <th><input data-filter="instrument" placeholder="EURUSD"></th>
-                            <th></th>
-                            <th></th>
-                            <th><input data-filter="session" placeholder="london"></th>
-                            <th></th>
-                            <th></th>
-                            <th><input data-filter="result" placeholder="WIN / LIVE"></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
+                    ${renderHeader()}
                     <tbody id="rows">
-                        <tr>
-                            <td colspan="11">Načítám…</td>
-                        </tr>
+                        <tr><td colspan="11">Načítám…</td></tr>
                     </tbody>
                 </table>
             </div>
 
-            <button
-                class="action-btn backBtn"
-                id="backBtn"
-                style="margin-top:16px"
-            >
+            <button class="action-btn backBtn" id="backBtn" style="margin-top:16px">
                 ← Zpět na dashboard
             </button>
         </div>
     `;
 
+    const table = document.querySelector('.history-table');
     const rowsEl = document.getElementById('rows');
 
-    async function load() {
-        rowsEl.innerHTML = `
-            <tr><td colspan="11">Načítám…</td></tr>
-        `;
-
+    /* ===== DATA LOAD (ROWS ONLY) ===== */
+    async function loadRows() {
         const trades = await fetchTrades(tableState);
         currentTrades = trades;
 
-        rowsEl.innerHTML = trades.length
-            ? renderRows(trades)
+        const filtered = trades.filter(tradeMatchesFilters);
+
+        rowsEl.innerHTML = filtered.length
+            ? renderRows(filtered)
             : `<tr><td colspan="11">Žádná data</td></tr>`;
     }
 
-    /* ===== FILTERS ===== */
+    /* ===== FILTER EVENTS ===== */
     document.querySelectorAll('[data-filter]').forEach(input => {
-        input.addEventListener('input', e => {
+        input.value = tableState.filters[input.dataset.filter] ?? '';
+        input.oninput = e => {
             tableState.filters[e.target.dataset.filter] = e.target.value;
-            load();
-        });
+            loadRows();
+        };
     });
 
-    /* ===== SORT ===== */
+    /* ===== SORT EVENTS ===== */
     document.querySelectorAll('[data-sort]').forEach(th => {
         th.style.cursor = 'pointer';
         th.onclick = () => {
             toggleSort(th.dataset.sort);
-            load();
+
+            /* 🔑 RERENDER HEADER ONLY ON SORT */
+            table.querySelector('thead').outerHTML = renderHeader();
+            attachHeaderEvents();
+
+            loadRows();
         };
     });
 
-    /* ===== EDIT + DELETE HANDLERS ===== */
-    rowsEl.addEventListener('click', async e => {
-        /* EDIT */
+    function attachHeaderEvents() {
+        /* reattach filter handlers */
+        document.querySelectorAll('[data-filter]').forEach(input => {
+            input.value = tableState.filters[input.dataset.filter] ?? '';
+            input.oninput = e => {
+                tableState.filters[e.target.dataset.filter] = e.target.value;
+                loadRows();
+            };
+        });
+
+        /* reattach sort handlers */
+        document.querySelectorAll('[data-sort]').forEach(th => {
+            th.style.cursor = 'pointer';
+            th.onclick = () => {
+                toggleSort(th.dataset.sort);
+                table.querySelector('thead').outerHTML = renderHeader();
+                attachHeaderEvents();
+                loadRows();
+            };
+        });
+    }
+
+    /* ===== EDIT + DELETE ===== */
+    rowsEl.onclick = async e => {
         const editBtn = e.target.closest('.edit-btn');
         if (editBtn) {
-            const trade = currentTrades.find(
-                t => t.id === editBtn.dataset.id
-            );
+            const trade = currentTrades.find(t => t.id === editBtn.dataset.id);
             if (!trade) return;
-
             state.editingTrade = { ...trade };
             navigate('edit');
             return;
         }
 
-        /* DELETE */
         const deleteBtn = e.target.closest('.delete-btn');
         if (deleteBtn) {
-            const trade = currentTrades.find(
-                t => t.id === deleteBtn.dataset.id
-            );
+            const trade = currentTrades.find(t => t.id === deleteBtn.dataset.id);
             if (!trade) return;
-
-            const ok = confirm(
-                `Opravdu chceš smazat trade?\n\n` +
-                `${trade.instrument} | ${trade.direction.toUpperCase()} | ${new Date(trade.trade_datetime).toLocaleString('cs-CZ')}`
-            );
-
-            if (!ok) return;
-
-            const { error } = await supabase
-                .from('trades')
-                .delete()
-                .eq('id', trade.id);
-
-            if (error) {
-                alert('Chyba při mazání: ' + error.message);
-                return;
-            }
-
-            load();
+            if (!confirm('Opravdu chceš smazat trade?')) return;
+            await supabase.from('trades').delete().eq('id', trade.id);
+            loadRows();
         }
-    });
+    };
 
     document.getElementById('backBtn').onclick = () => {
         navigate('dashboard');
     };
 
-    load();
+    loadRows();
 }
