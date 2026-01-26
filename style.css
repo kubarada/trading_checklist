@@ -1068,3 +1068,43 @@ input[type="checkbox"] {
 .delete-btn:hover {
     transform: scale(1.2);
 }
+
+/* ==============================
+   STICKY HISTORY HEADER + FILTER
+   AS ONE BOX
+   ============================== */
+
+.table-wrap {
+    position: relative;
+}
+
+/* celý thead = jeden sticky box */
+.history-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    background-color: #0b1020;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* header + filter buňky */
+.history-table thead th {
+    background-color: #0b1020;
+}
+
+/* zruš všechny spodní bordery, ať je to jeden blok */
+.history-table thead tr th {
+    border-bottom: none;
+}
+
+/* jemné oddělení mezi headerem a filtrem uvnitř boxu */
+.history-table thead tr.filters th {
+    border-top: 0px solid rgba(255, 255, 255, 0.06);
+}
+
+/* inputy ve filtru součást boxu */
+.history-table thead input {
+    background-color: #0b1020;
+}
+
