@@ -1,4 +1,4 @@
-import { navigate } from '../app.js';
+import { navigate, state } from '../app.js';
 import { fetchTrades } from '../services/historyService.js';
 import { questions } from '../data/questions.js';
 
@@ -15,6 +15,8 @@ const tableState = {
     }
 };
 
+let currentTrades = [];
+
 /* ===== HELPERS ===== */
 function questionIdToText(id) {
     const all = [
@@ -25,36 +27,33 @@ function questionIdToText(id) {
 }
 
 function renderRows(trades) {
-    return trades.map(t => {
-        const questionsText = t.checked_questions
-            .map(id => `<li>${questionIdToText(id)}</li>`)
-            .join('');
-
-        return `
-            <tr>
-                <td>${t.instrument}</td>
-                <td>${t.direction.toUpperCase()}</td>
-                <td>${t.session.toUpperCase()}</td>
-                <td>${t.checklist_score}%</td>
-                <td>${t.grade}</td>
-                <td>${t.result ?? 'LIVE'}</td>
-                <td>
-                    <div class="questions-tooltip">
-                        <span class="q-summary">
-                            Questions (${t.checked_questions.length})
-                        </span>
-
-                        <div class="q-tooltip">
-                            <ul>
-                                ${questionsText}
-                            </ul>
-                        </div>
-                    </div>
-                </td>
-                <td>${new Date(t.trade_datetime).toLocaleString('cs-CZ')}</td>
-            </tr>
-        `;
-    }).join('');
+    return trades.map(t => `
+        <tr>
+            <td>${t.instrument}</td>
+            <td>${t.direction.toUpperCase()}</td>
+            <td>${t.session.toUpperCase()}</td>
+            <td>${t.checklist_score}%</td>
+            <td>${t.grade}</td>
+            <td>${t.result ?? 'LIVE'}</td>
+            <td>
+                <div class="questions-tooltip">
+                    <span class="q-summary">
+                        Questions (${t.checked_questions.length})
+                    </span>
+                </div>
+            </td>
+            <td>
+                ${new Date(
+                    t.trade_datetime ?? t.created_at
+                ).toLocaleString('cs-CZ')}
+            </td>
+            <td>
+                <button class="edit-btn" data-id="${t.id}">
+                    ✏️
+                </button>
+            </td>
+        </tr>
+    `).join('');
 }
 
 function toggleSort(column) {
@@ -71,7 +70,6 @@ function toggleSort(column) {
 export async function renderHistory(app) {
     app.innerHTML = `
         <div class="box wide">
-
             <h2>Historie tradů</h2>
 
             <table class="history-table">
@@ -85,25 +83,27 @@ export async function renderHistory(app) {
                         <th data-sort="result">Výsledek</th>
                         <th>Questions</th>
                         <th data-sort="trade_datetime">Datum</th>
+                        <th>Edit</th>
                     </tr>
                     <tr class="filters">
-                        <th><input data-filter="instrument" placeholder="EURUSD"></th>
+                        <th><input data-filter="instrument"></th>
                         <th></th>
-                        <th><input data-filter="session" placeholder="london"></th>
+                        <th><input data-filter="session"></th>
                         <th></th>
                         <th></th>
-                        <th><input data-filter="result" placeholder="WIN / LIVE"></th>
+                        <th><input data-filter="result"></th>
+                        <th></th>
                         <th></th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody id="rows">
-                    <tr><td colspan="8">Načítám…</td></tr>
+                    <tr><td colspan="9">Načítám…</td></tr>
                 </tbody>
             </table>
 
             <button class="action-btn backBtn" id="backBtn" style="margin-top:16px">
-                ← Zpět na dashboard
+                ← Zpět
             </button>
         </div>
     `;
@@ -111,29 +111,43 @@ export async function renderHistory(app) {
     const rowsEl = document.getElementById('rows');
 
     async function load() {
-        rowsEl.innerHTML = `<tr><td colspan="8">Načítám…</td></tr>`;
         const trades = await fetchTrades(tableState);
+        currentTrades = trades;
+
         rowsEl.innerHTML = trades.length
             ? renderRows(trades)
-            : `<tr><td colspan="8">Žádná data</td></tr>`;
+            : `<tr><td colspan="9">Žádná data</td></tr>`;
     }
 
     /* FILTERS */
     document.querySelectorAll('[data-filter]').forEach(input => {
-        input.addEventListener('input', e => {
+        input.oninput = e => {
             tableState.filters[e.target.dataset.filter] = e.target.value;
             load();
-        });
+        };
     });
 
     /* SORT */
     document.querySelectorAll('[data-sort]').forEach(th => {
-        th.style.cursor = 'pointer';
         th.onclick = () => {
             toggleSort(th.dataset.sort);
             load();
         };
     });
+
+    /* EDIT */
+    rowsEl.onclick = e => {
+        const btn = e.target.closest('.edit-btn');
+        if (!btn) return;
+
+        const trade = currentTrades.find(
+            t => t.id === btn.dataset.id
+        );
+        if (!trade) return;
+
+        state.editingTrade = { ...trade };
+        navigate('edit');
+    };
 
     document.getElementById('backBtn').onclick = () => {
         navigate('dashboard');

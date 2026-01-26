@@ -1045,3 +1045,14 @@ input[type="checkbox"] {
 .stats-panel h3 {
     margin-top: 0;
 }
+
+.edit-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.edit-btn:hover {
+    transform: scale(1.2);
+}

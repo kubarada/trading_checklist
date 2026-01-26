@@ -5,6 +5,7 @@ import { renderChecklist } from './views/checklist.js';
 import { renderConfirmation } from './views/confirmation.js';
 import { renderHistory } from './views/history.js';
 import { renderStats } from './views/stats.js';
+import { renderEdit } from './views/edit.js';
 
 
 /* ===== GLOBAL STATE ===== */
@@ -14,7 +15,8 @@ export const state = {
     isLive: true,
     instrument: 'EURUSD',
     tradeDate: null,
-    tradeTime: null
+    tradeTime: null,
+    editingTrade: null
 };
 
 
@@ -54,6 +56,10 @@ export function navigate(view) {
         
         case 'stats':
             renderStats(app);
+            break;
+
+        case 'edit':
+            renderEdit(app);
             break;
 
         default:
