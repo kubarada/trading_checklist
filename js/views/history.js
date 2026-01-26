@@ -80,7 +80,40 @@ function sortArrow(column) {
 }
 
 /* =========================
-   RENDER HEADER (STATIC)
+   MINI STATS
+   ========================= */
+function computeStats(trades) {
+    const total = trades.length;
+    if (!total) {
+        return {
+            total: 0,
+            winRate: 0,
+            avgChecklist: 0,
+            gradeRatio: 0
+        };
+    }
+
+    const wins = trades.filter(t => t.result === 'WIN').length;
+
+    const checklistSum = trades.reduce(
+        (sum, t) => sum + (t.checklist_score ?? 0),
+        0
+    );
+
+    const goodGrades = trades.filter(
+        t => t.grade === 'A' || t.grade === 'A+'
+    ).length;
+
+    return {
+        total,
+        winRate: Math.round((wins / total) * 100),
+        avgChecklist: Math.round(checklistSum / total),
+        gradeRatio: Math.round((goodGrades / total) * 100)
+    };
+}
+
+/* =========================
+   RENDER HEADER
    ========================= */
 function renderHeader() {
     return `
@@ -88,26 +121,26 @@ function renderHeader() {
             <tr>
                 <th data-sort="instrument">Instrument${sortArrow('instrument')}</th>
                 <th data-sort="direction">Směr${sortArrow('direction')}</th>
-                <th data-sort="mode">Typ${sortArrow('mode')}</th>
+                <th data-sort="mode">Mode${sortArrow('mode')}</th>
                 <th data-sort="session">Session${sortArrow('session')}</th>
-                <th data-sort="checklist_score">Skóre${sortArrow('checklist_score')}</th>
-                <th data-sort="grade">Známka${sortArrow('grade')}</th>
+                <th data-sort="checklist_score">Checklist${sortArrow('checklist_score')}</th>
+                <th data-sort="grade">Grade${sortArrow('grade')}</th>
                 <th data-sort="result">Výsledek${sortArrow('result')}</th>
-                <th>Checklist</th>
+                <th>Questions</th>
                 <th data-sort="trade_datetime">Datum${sortArrow('trade_datetime')}</th>
-                <th>Upravit</th>
-                <th>Smazat</th>
+                <th>Edit</th>
+                <th>Delete</th>
             </tr>
             <tr class="filters">
                 <th><input data-filter="instrument"></th>
-                <th><input data-filter="direction" placeholder=""></th>
-                <th><input data-filter="mode" placeholder=""></th>
+                <th><input data-filter="direction"></th>
+                <th><input data-filter="mode"></th>
                 <th><input data-filter="session"></th>
                 <th></th>
                 <th><input data-filter="grade"></th>
                 <th><input data-filter="result"></th>
-                <th><input data-filter="questions" placeholder="Breakout..."></th>
-                <th><input data-filter="date" placeholder="2026"></th>
+                <th><input data-filter="questions"></th>
+                <th><input data-filter="date"></th>
                 <th></th>
                 <th></th>
             </tr>
@@ -161,6 +194,16 @@ export async function renderHistory(app) {
         <div class="box wide">
             <h2>Historie tradů</h2>
 
+            <!-- MINI STATS -->
+            <div id="miniStats" style="
+                margin: 6px 0 12px;
+                font-size: 0.85rem;
+                color: var(--muted);
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+            "></div>
+
             <div class="table-wrap">
                 <table class="history-table">
                     ${renderHeader()}
@@ -178,20 +221,29 @@ export async function renderHistory(app) {
 
     const table = document.querySelector('.history-table');
     const rowsEl = document.getElementById('rows');
+    const statsEl = document.getElementById('miniStats');
 
-    /* ===== DATA LOAD (ROWS ONLY) ===== */
     async function loadRows() {
         const trades = await fetchTrades(tableState);
         currentTrades = trades;
 
         const filtered = trades.filter(tradeMatchesFilters);
 
+        /* MINI STATS UPDATE */
+        const stats = computeStats(filtered);
+        statsEl.innerHTML = `
+            <span>Trades: <strong>${stats.total}</strong></span>
+            <span>Win rate: <strong>${stats.winRate} %</strong></span>
+            <span>Avg checklist: <strong>${stats.avgChecklist} %</strong></span>
+            <span>A / A+: <strong>${stats.gradeRatio} %</strong></span>
+        `;
+
         rowsEl.innerHTML = filtered.length
             ? renderRows(filtered)
             : `<tr><td colspan="11">Žádná data</td></tr>`;
     }
 
-    /* ===== FILTER EVENTS ===== */
+    /* FILTER EVENTS */
     document.querySelectorAll('[data-filter]').forEach(input => {
         input.value = tableState.filters[input.dataset.filter] ?? '';
         input.oninput = e => {
@@ -200,22 +252,18 @@ export async function renderHistory(app) {
         };
     });
 
-    /* ===== SORT EVENTS ===== */
+    /* SORT EVENTS */
     document.querySelectorAll('[data-sort]').forEach(th => {
         th.style.cursor = 'pointer';
         th.onclick = () => {
             toggleSort(th.dataset.sort);
-
-            /* 🔑 RERENDER HEADER ONLY ON SORT */
             table.querySelector('thead').outerHTML = renderHeader();
             attachHeaderEvents();
-
             loadRows();
         };
     });
 
     function attachHeaderEvents() {
-        /* reattach filter handlers */
         document.querySelectorAll('[data-filter]').forEach(input => {
             input.value = tableState.filters[input.dataset.filter] ?? '';
             input.oninput = e => {
@@ -224,7 +272,6 @@ export async function renderHistory(app) {
             };
         });
 
-        /* reattach sort handlers */
         document.querySelectorAll('[data-sort]').forEach(th => {
             th.style.cursor = 'pointer';
             th.onclick = () => {
@@ -236,7 +283,7 @@ export async function renderHistory(app) {
         });
     }
 
-    /* ===== EDIT + DELETE ===== */
+    /* EDIT + DELETE */
     rowsEl.onclick = async e => {
         const editBtn = e.target.closest('.edit-btn');
         if (editBtn) {
