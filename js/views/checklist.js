@@ -110,7 +110,7 @@ export function renderChecklist(app) {
         progressFill.style.width = `${percent}%`;
         progressText.textContent = `${percent} %`;
 
-        confirmBtn.disabled = percent < 80;
+        confirmBtn.disabled = percent < 1;
     }
 
     checkboxes.forEach(cb => {
