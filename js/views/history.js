@@ -64,6 +64,48 @@ function tradeMatchesFilters(trade) {
     );
 }
 
+/* =========================
+   SORT (CLIENT SIDE)
+   ========================= */
+function sortTrades(trades) {
+    const { column, direction } = tableState.sort;
+
+    return [...trades].sort((a, b) => {
+        let v1 = a[column];
+        let v2 = b[column];
+
+        /* ===== SPECIAL CASE: MODE ===== */
+        if (column === 'mode') {
+            v1 = a.is_live ? 'live' : 'backtest';
+            v2 = b.is_live ? 'live' : 'backtest';
+        }
+
+        /* ===== SPECIAL CASE: RESULT ===== */
+        if (column === 'result') {
+            const order = {
+                WIN: 3,
+                BE: 2,
+                LOSS: 1,
+                null: 0
+            };
+
+            v1 = order[a.result ?? 'null'];
+            v2 = order[b.result ?? 'null'];
+        }
+
+        /* ===== NULL HANDLING ===== */
+        if (v1 == null) return 1;
+        if (v2 == null) return -1;
+        if (v1 === v2) return 0;
+
+        /* ===== DEFAULT COMPARE ===== */
+        return direction === 'asc'
+            ? v1 > v2 ? 1 : -1
+            : v1 < v2 ? 1 : -1;
+    });
+}
+
+
 function toggleSort(column) {
     if (tableState.sort.column === column) {
         tableState.sort.direction =
@@ -80,29 +122,43 @@ function sortArrow(column) {
 }
 
 /* =========================
+   SCREENSHOT MODAL
+   ========================= */
+async function openScreenshot(path) {
+    const { data, error } = await supabase
+        .storage
+        .from('trade-screenshots')
+        .createSignedUrl(path, 300);
+
+    if (error) {
+        alert('Nelze načíst screenshot');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <img src="${data.signedUrl}" />
+        </div>
+    `;
+
+    modal.onclick = () => modal.remove();
+    document.body.appendChild(modal);
+}
+
+/* =========================
    MINI STATS
    ========================= */
 function computeStats(trades) {
     const total = trades.length;
     if (!total) {
-        return {
-            total: 0,
-            winRate: 0,
-            avgChecklist: 0,
-            gradeRatio: 0
-        };
+        return { total: 0, winRate: 0, avgChecklist: 0, gradeRatio: 0 };
     }
 
     const wins = trades.filter(t => t.result === 'WIN').length;
-
-    const checklistSum = trades.reduce(
-        (sum, t) => sum + (t.checklist_score ?? 0),
-        0
-    );
-
-    const goodGrades = trades.filter(
-        t => t.grade === 'A' || t.grade === 'A+'
-    ).length;
+    const checklistSum = trades.reduce((s, t) => s + (t.checklist_score ?? 0), 0);
+    const goodGrades = trades.filter(t => t.grade === 'A' || t.grade === 'A+').length;
 
     return {
         total,
@@ -113,7 +169,7 @@ function computeStats(trades) {
 }
 
 /* =========================
-   RENDER HEADER
+   HEADER
    ========================= */
 function renderHeader() {
     return `
@@ -128,6 +184,7 @@ function renderHeader() {
                 <th data-sort="result">Výsledek${sortArrow('result')}</th>
                 <th>Questions</th>
                 <th data-sort="trade_datetime">Datum${sortArrow('trade_datetime')}</th>
+                <th>📷</th>
                 <th>Edit</th>
                 <th>Delete</th>
             </tr>
@@ -143,26 +200,23 @@ function renderHeader() {
                 <th><input data-filter="date"></th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
     `;
 }
 
 /* =========================
-   RENDER ROWS
+   ROWS
    ========================= */
 function renderRows(trades) {
     return trades.map(t => `
         <tr>
             <td>${t.instrument}</td>
             <td>${t.direction.toUpperCase()}</td>
-            <td>
-                <span class="meta-badge ${t.is_live ? 'live' : 'backtest'}">
-                    ${t.is_live ? 'LIVE' : 'BACKTEST'}
-                </span>
-            </td>
-            <td>${t.session?.toUpperCase() ?? '—'}</td>
-            <td>${t.checklist_score ?? 0} %</td>
+            <td>${t.is_live ? 'LIVE' : 'BACKTEST'}</td>
+            <td>${t.session ?? '—'}</td>
+            <td>${t.checklist_score} %</td>
             <td>${t.grade ?? '—'}</td>
             <td>${t.result ?? 'LIVE'}</td>
             <td>
@@ -180,6 +234,13 @@ function renderRows(trades) {
                 </div>
             </td>
             <td>${new Date(t.trade_datetime).toLocaleString('cs-CZ')}</td>
+            <td>
+                ${
+                    t.screenshot_path
+                        ? `<button class="screenshot-btn" data-path="${t.screenshot_path}">📷</button>`
+                        : ''
+                }
+            </td>
             <td><button class="edit-btn" data-id="${t.id}">✏️</button></td>
             <td><button class="delete-btn" data-id="${t.id}">🗑️</button></td>
         </tr>
@@ -194,7 +255,6 @@ export async function renderHistory(app) {
         <div class="box wide">
             <h2>Historie tradů</h2>
 
-            <!-- MINI STATS -->
             <div id="miniStats" style="
                 margin: 6px 0 12px;
                 font-size: 0.85rem;
@@ -208,7 +268,7 @@ export async function renderHistory(app) {
                 <table class="history-table">
                     ${renderHeader()}
                     <tbody id="rows">
-                        <tr><td colspan="11">Načítám…</td></tr>
+                        <tr><td colspan="12">Načítám…</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -224,13 +284,13 @@ export async function renderHistory(app) {
     const statsEl = document.getElementById('miniStats');
 
     async function loadRows() {
-        const trades = await fetchTrades(tableState);
+        const trades = await fetchTrades(tableState); // ⬅️ FIX
         currentTrades = trades;
 
         const filtered = trades.filter(tradeMatchesFilters);
+        const sorted = sortTrades(filtered);
 
-        /* MINI STATS UPDATE */
-        const stats = computeStats(filtered);
+        const stats = computeStats(sorted);
         statsEl.innerHTML = `
             <span>Trades: <strong>${stats.total}</strong></span>
             <span>Win rate: <strong>${stats.winRate} %</strong></span>
@@ -238,14 +298,13 @@ export async function renderHistory(app) {
             <span>A / A+: <strong>${stats.gradeRatio} %</strong></span>
         `;
 
-        rowsEl.innerHTML = filtered.length
-            ? renderRows(filtered)
-            : `<tr><td colspan="11">Žádná data</td></tr>`;
+        rowsEl.innerHTML = sorted.length
+            ? renderRows(sorted)
+            : `<tr><td colspan="12">Žádná data</td></tr>`;
     }
 
     /* FILTER EVENTS */
     document.querySelectorAll('[data-filter]').forEach(input => {
-        input.value = tableState.filters[input.dataset.filter] ?? '';
         input.oninput = e => {
             tableState.filters[e.target.dataset.filter] = e.target.value;
             loadRows();
@@ -254,7 +313,6 @@ export async function renderHistory(app) {
 
     /* SORT EVENTS */
     document.querySelectorAll('[data-sort]').forEach(th => {
-        th.style.cursor = 'pointer';
         th.onclick = () => {
             toggleSort(th.dataset.sort);
             table.querySelector('thead').outerHTML = renderHeader();
@@ -265,7 +323,6 @@ export async function renderHistory(app) {
 
     function attachHeaderEvents() {
         document.querySelectorAll('[data-filter]').forEach(input => {
-            input.value = tableState.filters[input.dataset.filter] ?? '';
             input.oninput = e => {
                 tableState.filters[e.target.dataset.filter] = e.target.value;
                 loadRows();
@@ -273,7 +330,6 @@ export async function renderHistory(app) {
         });
 
         document.querySelectorAll('[data-sort]').forEach(th => {
-            th.style.cursor = 'pointer';
             th.onclick = () => {
                 toggleSort(th.dataset.sort);
                 table.querySelector('thead').outerHTML = renderHeader();
@@ -283,8 +339,13 @@ export async function renderHistory(app) {
         });
     }
 
-    /* EDIT + DELETE */
-    rowsEl.onclick = async e => {
+    rowsEl.onclick = e => {
+        const screenshotBtn = e.target.closest('.screenshot-btn');
+        if (screenshotBtn) {
+            openScreenshot(screenshotBtn.dataset.path);
+            return;
+        }
+
         const editBtn = e.target.closest('.edit-btn');
         if (editBtn) {
             const trade = currentTrades.find(t => t.id === editBtn.dataset.id);
@@ -299,8 +360,7 @@ export async function renderHistory(app) {
             const trade = currentTrades.find(t => t.id === deleteBtn.dataset.id);
             if (!trade) return;
             if (!confirm('Opravdu chceš smazat trade?')) return;
-            await supabase.from('trades').delete().eq('id', trade.id);
-            loadRows();
+            supabase.from('trades').delete().eq('id', trade.id).then(loadRows);
         }
     };
 
