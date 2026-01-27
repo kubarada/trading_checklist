@@ -1,5 +1,6 @@
 import { state, navigate } from '../app.js';
 import { saveTrade } from '../services/tradeService.js';
+import { uploadTradeScreenshot } from '../services/uploadService.js';
 
 /* ===== HELPERS ===== */
 function formatDatetime(dt) {
@@ -21,12 +22,10 @@ function showSuccessToast(text) {
 
     document.body.appendChild(toast);
 
-    // trigger animation
     requestAnimationFrame(() => {
         toast.classList.add('show');
     });
 
-    // hide + remove
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
@@ -36,6 +35,8 @@ function showSuccessToast(text) {
 export function renderConfirmation(app) {
     const { label: gradeLabel } = getGrade(state.score);
     const isLive = state.isLive;
+
+    let selectedFile = null;
 
     app.innerHTML = `
         <div class="box">
@@ -52,6 +53,22 @@ export function renderConfirmation(app) {
 
                 <div class="trade-grade">
                     Ohodnocení: <b>${gradeLabel}</b>
+                </div>
+            </div>
+
+            <!-- SCREENSHOT UPLOAD -->
+            <div class="screenshot-upload">
+                <div class="screenshot-header">
+                    <span class="screenshot-label">
+                        📷 Screenshot (volitelné)
+                        <span class="screenshot-hint"></span>
+                    </span>
+
+                    <input
+                        type="file"
+                        id="screenshotInput"
+                        accept="image/*"
+                    />
                 </div>
             </div>
 
@@ -72,16 +89,36 @@ export function renderConfirmation(app) {
                     : ''
             }
 
-            <!-- ACTION -->
-            <button
-                class="action-btn tradeBtn"
-                id="finishBtn"
-                ${!isLive ? 'disabled' : ''}
-            >
-                Uložit trade
-            </button>
+            <!-- ACTIONS -->
+            <div class="confirmation-actions">
+                <button
+                    class="action-btn backBtn"
+                    id="backToChecklistBtn"
+                >
+                    Zpět
+                </button>
+
+                <button
+                    class="action-btn tradeBtn"
+                    id="finishBtn"
+                    ${!isLive ? 'disabled' : ''}
+                >
+                    Uložit trade
+                </button>
+            </div>
         </div>
     `;
+
+    /* ===== FILE HANDLING ===== */
+    const screenshotInput = document.getElementById('screenshotInput');
+    screenshotInput.onchange = e => {
+        selectedFile = e.target.files[0] || null;
+    };
+
+    /* ===== BACK BUTTON ===== */
+    document.getElementById('backToChecklistBtn').onclick = () => {
+        navigate('checklist');
+    };
 
     /* ===== BACKTEST RESULT HANDLING ===== */
     if (!isLive) {
@@ -99,19 +136,37 @@ export function renderConfirmation(app) {
         });
     }
 
-    /* ===== SAVE TRADE ===== */
+    /* ===== SAVE TRADE + UPLOAD SCREENSHOT ===== */
     document.getElementById('finishBtn').onclick = async () => {
         if (!isLive && !state.tradeResult) return;
 
+        let tradeId;
+
         try {
-            await saveTrade(state);
+            tradeId = await saveTrade(state);
         } catch (err) {
             console.error(err);
             alert('Chyba při ukládání tradu');
             return;
         }
 
-        // ✅ SUCCESS FEEDBACK
+        try {
+            if (selectedFile) {
+                const {
+                    data: { user }
+                } = await window.supabase.auth.getUser();
+
+                await uploadTradeScreenshot({
+                    file: selectedFile,
+                    tradeId,
+                    userId: user.id
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Trade uložen, ale screenshot se nepodařilo nahrát');
+        }
+
         showSuccessToast('Trade byl uložen úspěšně');
 
         /* ===== RESET STATE ===== */
@@ -120,7 +175,8 @@ export function renderConfirmation(app) {
         state.tradeResult = null;
         state.checkedQuestions = null;
 
-        // malá pauza kvůli UX
+        screenshotInput.disabled = true;
+
         setTimeout(() => {
             navigate('dashboard');
         }, 1500);

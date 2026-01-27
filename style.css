@@ -1115,3 +1115,57 @@ input[type="checkbox"] {
 .history-table th::selection {
     background: transparent;
 }
+
+/* ===== SCREENSHOT UPLOAD ===== */
+
+.screenshot-upload {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #1e293b;
+}
+
+.screenshot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.screenshot-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #e5e7eb;
+}
+
+.screenshot-hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 400;
+}
+
+.screenshot-upload input[type="file"] {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    display: flex;
+    color: #94a3b8;
+}
+
+/* ===== CONFIRMATION ACTIONS ===== */
+
+.confirmation-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 12px;
+}
+
+.confirmation-actions .backBtn {
+    flex: 1;
+}
+
+.confirmation-actions .tradeBtn {
+    flex: 2;
+}
+

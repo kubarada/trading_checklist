@@ -40,13 +40,18 @@ export async function saveTrade(state) {
         checked_questions: state.checkedQuestions
     };
 
-    /* ===== INSERT ===== */
-    const { error } = await supabase
+    /* ===== INSERT + RETURN ID ===== */
+    const { data, error } = await supabase
         .from('trades')
-        .insert(trade);
+        .insert(trade)
+        .select('id')
+        .single();
 
     if (error) {
         console.error('Supabase insert error:', error);
         throw error;
     }
+
+    // 🔥 KLÍČOVÁ ZMĚNA
+    return data.id;
 }
